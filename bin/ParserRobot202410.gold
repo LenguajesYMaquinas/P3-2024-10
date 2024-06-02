@@ -1,0 +1,278 @@
+using gold.**
+
+toSet(C) :=  {x|  x in C}
+
+///====   mini Parser===
+
+function createParser(A):IPushdownAutomaton begin
+	Q:={'I',
+		'a',
+		'b',
+		'(',
+		// Reconocer la defincion de variables
+		"vFromDefFun",
+		"#FromDefFun",
+		// Reconocer la defincion de funciones
+		"funnameFromDefFun",
+		"openParenthesisFromFunnameFromDefFun",
+		"parameterFromOpenParenthesisFromFunnameFromDefFun",
+		"closeParenthesisFromParameterFromOpenParenthesisFromFunnameFromDefFun",
+		"startCsInFunctionDefinition",
+		"equalsInFunctionDefinition",
+		"openParenthesisFromStartCsInFunctionDefinition",
+		"valueFromVariableFromEqualsInFunctionDefinition",
+		"variableFromEqualsInFunctionDefinition",
+		"functionCall",
+		"moveInFunctionDefinition",
+		"skipInFunctionDefinition",
+		"turnInFunctionDefinition",
+		"directionFromTurnInFunctionDefinition",
+		"faceInFunctionDefinition",
+		"putInFunctionDefinition",
+		"objectFromPutInFunctionDefinition",
+		"move-dirInFunctionDefinition",
+		"valueFromMove-dirInFunctionDefinition",
+		"run-dirsInFunctionDefinition",
+		"directionFromMove-dirInFunctionDefinition",
+		"move-faceInFunctionDefinition",
+		"valueFromMove-faceInFunctionDefinition",
+		"nullInFunctionDefinition",
+		"valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",
+		"objectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",
+		"putFromOpenParenthesisFromIfInFunctionDefinition",
+		"blockedFromOpenParenthesisFromIfInFunctionDefinition",
+		"closeConditionInIf",
+		"directionFromFacingFromOpenParenthesisFromIfInFunctionDefinition",
+		"facingFromOpenParenthesisFromIfInFunctionDefinition",
+		"openParenthesisFromIfInFunctionDefinition",
+		"ifInFunctionDefinition",
+		"isZeroFromOpenParenthesisFromIfInFunctionDefinition",
+		"can-putFromOpenParenthesisFromIfInFunctionDefinition",
+		"repeatInFunctionDefinition",
+		"valueFromRepeatInFunctionDefinition"}
+	Σ:=toSet(A)  ∪ {' ', '\n'}
+	Γ:={'1'}
+	q₀:='I'
+	F:= {'I'}
+	M:=GPushdownAutomaton(Q,Σ,Γ,q₀,F)
+	SkipChars := {' ', '\n'}
+	
+	// Reconocer la defincion de variables
+	M.delta('I','(','(').ignore()
+	M.delta('(','a','a').ignore()
+	M.delta('a',"vFromDefFun",'v').ignore()
+	M.delta("vFromDefFun","#FromDefFun",'#').ignore()
+	M.delta("vFromDefFun","#FromDefFun",'v').ignore()
+	M.delta("vFromDefFun","#FromDefFun",'z').ignore()
+	M.delta("vFromDefFun","#FromDefFun",'0').ignore()
+	M.delta("vFromDefFun","#FromDefFun",'1').ignore()
+	M.delta("vFromDefFun","#FromDefFun",'2').ignore()
+	M.delta("vFromDefFun","#FromDefFun",'3').ignore()
+	M.delta("vFromDefFun","#FromDefFun",'4').ignore()
+	M.delta("vFromDefFun","#FromDefFun",'5').ignore()
+	M.delta("vFromDefFun","#FromDefFun",'6').ignore()
+	M.delta("#FromDefFun",'I',')').ignore()
+	
+	//Reconocer los bloques de comandos exteriores
+	M.delta('I',"startCsInFunctionDefinition",'(').ignore()
+	
+	// Reconocer la definicion de funciones
+	M.delta('(','b','b').ignore()
+	M.delta('b',"funnameFromDefFun",'v').ignore()
+	M.delta("funnameFromDefFun","openParenthesisFromFunnameFromDefFun",'(').ignore()
+	M.delta("openParenthesisFromFunnameFromDefFun","startCsInFunctionDefinition",')').ignore()
+	M.delta("openParenthesisFromFunnameFromDefFun","parameterFromOpenParenthesisFromFunnameFromDefFun",'v').ignore()
+	M.delta("parameterFromOpenParenthesisFromFunnameFromDefFun","parameterFromOpenParenthesisFromFunnameFromDefFun",'v').ignore()
+	M.delta("parameterFromOpenParenthesisFromFunnameFromDefFun","startCsInFunctionDefinition",')').ignore()
+	
+	M.delta("startCsInFunctionDefinition","openParenthesisFromStartCsInFunctionDefinition",'(').ignore()
+	
+	M.delta("openParenthesisFromStartCsInFunctionDefinition","equalsInFunctionDefinition",'=').ignore()
+	M.delta("equalsInFunctionDefinition","variableFromEqualsInFunctionDefinition",'v').ignore()
+	M.delta("variableFromEqualsInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'#').ignore()
+	M.delta("variableFromEqualsInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'v').ignore()
+	M.delta("variableFromEqualsInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'z').ignore()
+	M.delta("variableFromEqualsInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'0').ignore()
+	M.delta("variableFromEqualsInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'1').ignore()
+	M.delta("variableFromEqualsInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'2').ignore()
+	M.delta("variableFromEqualsInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'3').ignore()
+	M.delta("variableFromEqualsInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'4').ignore()
+	M.delta("variableFromEqualsInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'5').ignore()
+	M.delta("variableFromEqualsInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'6').ignore()
+	M.delta("valueFromVariableFromEqualsInFunctionDefinition","startCsInFunctionDefinition",')').ignore()
+	
+	//En el estado startCsInFunctionDefinition se podria cerrar el parentesis exterior de la definición de la función, falta agregar esa transicion
+	M.delta("startCsInFunctionDefinition",'I',')').ignore()
+	M.delta("startCsInFunctionDefinition","closeConditionInIf",')').pop("1")
+	
+	M.delta("openParenthesisFromStartCsInFunctionDefinition","functionCall",'v').ignore()
+	M.delta("functionCall","functionCall",'v').ignore()
+	M.delta("functionCall","startCsInFunctionDefinition",')').ignore()
+	
+	// TODO: que no solo acepte dos bloque el condicional
+	
+	M.delta("openParenthesisFromStartCsInFunctionDefinition","moveInFunctionDefinition",'c').ignore()
+	M.delta("moveInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'#').ignore()
+	M.delta("moveInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'v').ignore()
+	M.delta("moveInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'z').ignore()
+	M.delta("moveInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'0').ignore()
+	M.delta("moveInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'1').ignore()
+	M.delta("moveInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'2').ignore()
+	M.delta("moveInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'3').ignore()
+	M.delta("moveInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'4').ignore()
+	M.delta("moveInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'5').ignore()
+	M.delta("moveInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'6').ignore()
+	
+	M.delta("openParenthesisFromStartCsInFunctionDefinition","skipInFunctionDefinition",'d').ignore()
+	M.delta("skipInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'#').ignore()
+	M.delta("skipInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'v').ignore()
+	M.delta("skipInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'z').ignore()
+	M.delta("skipInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'0').ignore()
+	M.delta("skipInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'1').ignore()
+	M.delta("skipInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'2').ignore()
+	M.delta("skipInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'3').ignore()
+	M.delta("skipInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'4').ignore()
+	M.delta("skipInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'5').ignore()
+	M.delta("skipInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'6').ignore()
+	
+	M.delta("openParenthesisFromStartCsInFunctionDefinition","turnInFunctionDefinition",'e').ignore()
+	M.delta("turnInFunctionDefinition","directionFromTurnInFunctionDefinition",'f').ignore()
+	M.delta("turnInFunctionDefinition","directionFromTurnInFunctionDefinition",'g').ignore()
+	M.delta("turnInFunctionDefinition","directionFromTurnInFunctionDefinition",'h').ignore()
+	M.delta("directionFromTurnInFunctionDefinition","startCsInFunctionDefinition",')').ignore()
+	
+  	M.delta("openParenthesisFromStartCsInFunctionDefinition","faceInFunctionDefinition",'i').ignore()
+  	M.delta("faceInFunctionDefinition","directionFromTurnInFunctionDefinition",'j').ignore()
+  	M.delta("faceInFunctionDefinition","directionFromTurnInFunctionDefinition",'k').ignore()
+  	M.delta("faceInFunctionDefinition","directionFromTurnInFunctionDefinition",'l').ignore()
+  	M.delta("faceInFunctionDefinition","directionFromTurnInFunctionDefinition",'m').ignore()
+  	
+  	M.delta("openParenthesisFromStartCsInFunctionDefinition","putInFunctionDefinition",'n').ignore()
+  	M.delta("openParenthesisFromStartCsInFunctionDefinition","putInFunctionDefinition",'o').ignore()
+  	M.delta("putInFunctionDefinition","objectFromPutInFunctionDefinition",'p').ignore()
+  	M.delta("putInFunctionDefinition","objectFromPutInFunctionDefinition",'q').ignore()
+  	M.delta("objectFromPutInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'#').ignore()
+	M.delta("objectFromPutInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'v').ignore()
+	M.delta("objectFromPutInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'z').ignore()
+	M.delta("objectFromPutInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'0').ignore()
+	M.delta("objectFromPutInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'1').ignore()
+	M.delta("objectFromPutInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'2').ignore()
+	M.delta("objectFromPutInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'3').ignore()
+	M.delta("objectFromPutInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'4').ignore()
+	M.delta("objectFromPutInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'5').ignore()
+	M.delta("objectFromPutInFunctionDefinition","valueFromVariableFromEqualsInFunctionDefinition",'6').ignore()
+  	
+  	M.delta("openParenthesisFromStartCsInFunctionDefinition","move-dirInFunctionDefinition",'r').ignore()
+  	M.delta("move-dirInFunctionDefinition","valueFromMove-dirInFunctionDefinition",'#').ignore()
+	M.delta("move-dirInFunctionDefinition","valueFromMove-dirInFunctionDefinition",'v').ignore()
+	M.delta("move-dirInFunctionDefinition","valueFromMove-dirInFunctionDefinition",'z').ignore()
+	M.delta("move-dirInFunctionDefinition","valueFromMove-dirInFunctionDefinition",'0').ignore()
+	M.delta("move-dirInFunctionDefinition","valueFromMove-dirInFunctionDefinition",'1').ignore()
+	M.delta("move-dirInFunctionDefinition","valueFromMove-dirInFunctionDefinition",'2').ignore()
+	M.delta("move-dirInFunctionDefinition","valueFromMove-dirInFunctionDefinition",'3').ignore()
+	M.delta("move-dirInFunctionDefinition","valueFromMove-dirInFunctionDefinition",'4').ignore()
+	M.delta("move-dirInFunctionDefinition","valueFromMove-dirInFunctionDefinition",'5').ignore()
+	M.delta("move-dirInFunctionDefinition","valueFromMove-dirInFunctionDefinition",'6').ignore()
+  	M.delta("valueFromMove-dirInFunctionDefinition","directionFromTurnInFunctionDefinition",'f').ignore()
+  	M.delta("valueFromMove-dirInFunctionDefinition","directionFromTurnInFunctionDefinition",'g').ignore()
+  	M.delta("valueFromMove-dirInFunctionDefinition","directionFromTurnInFunctionDefinition",'s').ignore()
+  	M.delta("valueFromMove-dirInFunctionDefinition","directionFromTurnInFunctionDefinition",'t').ignore()
+  	
+  	M.delta("openParenthesisFromStartCsInFunctionDefinition","run-dirsInFunctionDefinition",'u').ignore()
+  	M.delta("run-dirsInFunctionDefinition","directionFromMove-dirInFunctionDefinition",'f').ignore()
+  	M.delta("run-dirsInFunctionDefinition","directionFromMove-dirInFunctionDefinition",'g').ignore()
+  	M.delta("run-dirsInFunctionDefinition","directionFromMove-dirInFunctionDefinition",'s').ignore()
+  	M.delta("run-dirsInFunctionDefinition","directionFromMove-dirInFunctionDefinition",'t').ignore()
+  	M.delta("directionFromMove-dirInFunctionDefinition","directionFromMove-dirInFunctionDefinition",'f').ignore()
+  	M.delta("directionFromMove-dirInFunctionDefinition","directionFromMove-dirInFunctionDefinition",'g').ignore()
+  	M.delta("directionFromMove-dirInFunctionDefinition","directionFromMove-dirInFunctionDefinition",'s').ignore()
+  	M.delta("directionFromMove-dirInFunctionDefinition","directionFromMove-dirInFunctionDefinition",'t').ignore()
+	M.delta("directionFromMove-dirInFunctionDefinition","startCsInFunctionDefinition",')').ignore()  	
+
+	M.delta("openParenthesisFromStartCsInFunctionDefinition","move-faceInFunctionDefinition",'x').ignore()
+	M.delta("move-faceInFunctionDefinition","valueFromMove-faceInFunctionDefinition",'#').ignore()
+	M.delta("move-faceInFunctionDefinition","valueFromMove-faceInFunctionDefinition",'v').ignore()
+	M.delta("move-faceInFunctionDefinition","valueFromMove-faceInFunctionDefinition",'z').ignore()
+	M.delta("move-faceInFunctionDefinition","valueFromMove-faceInFunctionDefinition",'0').ignore()
+	M.delta("move-faceInFunctionDefinition","valueFromMove-faceInFunctionDefinition",'1').ignore()
+	M.delta("move-faceInFunctionDefinition","valueFromMove-faceInFunctionDefinition",'2').ignore()
+	M.delta("move-faceInFunctionDefinition","valueFromMove-faceInFunctionDefinition",'3').ignore()
+	M.delta("move-faceInFunctionDefinition","valueFromMove-faceInFunctionDefinition",'4').ignore()
+	M.delta("move-faceInFunctionDefinition","valueFromMove-faceInFunctionDefinition",'5').ignore()
+	M.delta("move-faceInFunctionDefinition","valueFromMove-faceInFunctionDefinition",'6').ignore()
+	M.delta("valueFromMove-faceInFunctionDefinition","directionFromTurnInFunctionDefinition",'j').ignore()
+  	M.delta("valueFromMove-faceInFunctionDefinition","directionFromTurnInFunctionDefinition",'k').ignore()
+  	M.delta("valueFromMove-faceInFunctionDefinition","directionFromTurnInFunctionDefinition",'l').ignore()
+  	M.delta("valueFromMove-faceInFunctionDefinition","directionFromTurnInFunctionDefinition",'m').ignore()
+
+	M.delta("openParenthesisFromStartCsInFunctionDefinition","nullInFunctionDefinition",'y').ignore()
+	M.delta("nullInFunctionDefinition","startCsInFunctionDefinition",')').ignore()
+	
+	M.delta("openParenthesisFromStartCsInFunctionDefinition","ifInFunctionDefinition",'7').push("1")
+	M.delta("ifInFunctionDefinition","openParenthesisFromIfInFunctionDefinition",'(').ignore()
+	M.delta("openParenthesisFromIfInFunctionDefinition","openParenthesisFromIfInFunctionDefinition",'v').ignore()
+	
+	M.delta("openParenthesisFromIfInFunctionDefinition","facingFromOpenParenthesisFromIfInFunctionDefinition",'!').ignore()
+	M.delta("facingFromOpenParenthesisFromIfInFunctionDefinition","directionFromFacingFromOpenParenthesisFromIfInFunctionDefinition",'j').ignore()
+	M.delta("facingFromOpenParenthesisFromIfInFunctionDefinition","directionFromFacingFromOpenParenthesisFromIfInFunctionDefinition",'k').ignore()
+	M.delta("facingFromOpenParenthesisFromIfInFunctionDefinition","directionFromFacingFromOpenParenthesisFromIfInFunctionDefinition",'l').ignore()
+	M.delta("facingFromOpenParenthesisFromIfInFunctionDefinition","directionFromFacingFromOpenParenthesisFromIfInFunctionDefinition",'m').ignore()
+	M.delta("directionFromFacingFromOpenParenthesisFromIfInFunctionDefinition","closeConditionInIf",')').ignore()
+
+	M.delta("openParenthesisFromIfInFunctionDefinition","blockedFromOpenParenthesisFromIfInFunctionDefinition",'@').ignore()
+	M.delta("blockedFromOpenParenthesisFromIfInFunctionDefinition","closeConditionInIf",')').ignore()
+	
+	M.delta("openParenthesisFromIfInFunctionDefinition","can-putFromOpenParenthesisFromIfInFunctionDefinition",'$').ignore()
+	M.delta("can-putFromOpenParenthesisFromIfInFunctionDefinition","objectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'p').ignore()
+	M.delta("can-putFromOpenParenthesisFromIfInFunctionDefinition","objectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'q').ignore()
+	M.delta("objectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition","valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'#').ignore()
+	M.delta("objectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition","valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'v').ignore()
+	M.delta("objectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition","valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'z').ignore()
+	M.delta("objectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition","valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'0').ignore()
+	M.delta("objectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition","valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'1').ignore()
+	M.delta("objectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition","valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'2').ignore()
+	M.delta("objectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition","valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'3').ignore()
+	M.delta("objectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition","valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'4').ignore()
+	M.delta("objectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition","valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'5').ignore()
+	M.delta("objectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition","valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'6').ignore()
+	M.delta("valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition","closeConditionInIf",')').ignore()
+	//-----------
+	M.delta("openParenthesisFromIfInFunctionDefinition","can-putFromOpenParenthesisFromIfInFunctionDefinition",'%').ignore()
+	
+	M.delta("openParenthesisFromIfInFunctionDefinition","facingFromOpenParenthesisFromIfInFunctionDefinition",'&').ignore()
+	
+	M.delta("openParenthesisFromIfInFunctionDefinition","isZeroFromOpenParenthesisFromIfInFunctionDefinition",'/').ignore()
+	M.delta("isZeroFromOpenParenthesisFromIfInFunctionDefinition","valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'#').ignore()
+	M.delta("isZeroFromOpenParenthesisFromIfInFunctionDefinition","valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'v').ignore()
+	M.delta("isZeroFromOpenParenthesisFromIfInFunctionDefinition","valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'z').ignore()
+	M.delta("isZeroFromOpenParenthesisFromIfInFunctionDefinition","valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'0').ignore()
+	M.delta("isZeroFromOpenParenthesisFromIfInFunctionDefinition","valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'1').ignore()
+	M.delta("isZeroFromOpenParenthesisFromIfInFunctionDefinition","valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'2').ignore()
+	M.delta("isZeroFromOpenParenthesisFromIfInFunctionDefinition","valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'3').ignore()
+	M.delta("isZeroFromOpenParenthesisFromIfInFunctionDefinition","valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'4').ignore()
+	M.delta("isZeroFromOpenParenthesisFromIfInFunctionDefinition","valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'5').ignore()
+	M.delta("isZeroFromOpenParenthesisFromIfInFunctionDefinition","valueFromObjectFromCan-putFromOpenParenthesisFromIfInFunctionDefinition",'6').ignore()
+	
+	M.delta("openParenthesisFromIfInFunctionDefinition","ifInFunctionDefinition",'*').push("1")
+	
+	M.delta("closeConditionInIf","startCsInFunctionDefinition",'(').push("1")
+	M.delta("closeConditionInIf","closeConditionInIf",')').pop("1")
+	M.delta("closeConditionInIf","startCsInFunctionDefinition",')').pop("1")
+	
+	M.delta("openParenthesisFromStartCsInFunctionDefinition","ifInFunctionDefinition",'8').push("1")
+	
+	M.delta("openParenthesisFromStartCsInFunctionDefinition","repeatInFunctionDefinition",'9').push("1")
+	M.delta("repeatInFunctionDefinition","closeConditionInIf",'#').ignore()
+	M.delta("repeatInFunctionDefinition","closeConditionInIf",'v').ignore()
+	M.delta("repeatInFunctionDefinition","closeConditionInIf",'z').ignore()
+	M.delta("repeatInFunctionDefinition","closeConditionInIf",'0').ignore()
+	M.delta("repeatInFunctionDefinition","closeConditionInIf",'1').ignore()
+	M.delta("repeatInFunctionDefinition","closeConditionInIf",'2').ignore()
+	M.delta("repeatInFunctionDefinition","closeConditionInIf",'3').ignore()
+	M.delta("repeatInFunctionDefinition","closeConditionInIf",'4').ignore()
+	M.delta("repeatInFunctionDefinition","closeConditionInIf",'5').ignore()
+	M.delta("repeatInFunctionDefinition","closeConditionInIf",'6').ignore()
+
+return M
+end
+
